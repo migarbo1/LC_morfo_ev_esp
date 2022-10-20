@@ -79,12 +79,13 @@ def get_num_of_words(fold, corpus):
     return n//fold
 
 def plot_model(results, ic, model, fold):
-    x=[i+1 for i in range(fold)+1]
+    x=[i+1 for i in range(fold)]
     y=results
-    plt.axis([0, 11, 0.80, 0.97])
+    #plt.axis([0, 11, 0.80, 0.97])
     plt.ylabel('Accuracy')
     plt.xlabel('Fold')
     plt.title('Ten-fold cross validation ' + model)
     plt.plot(x,y,'ro')
     plt.errorbar(x,y,yerr=ic,linestyle='None')
+    plt.margins(y=0.5)
     plt.show()
