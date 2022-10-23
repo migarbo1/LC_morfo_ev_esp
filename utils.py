@@ -3,10 +3,32 @@ import numpy as np
 import math
 import random
 import nltk
+from nltk.corpus import cess_esp
 from nltk.tag import hmm, tnt, brill, brill_trainer, UnigramTagger, crf, perceptron
 import matplotlib.pyplot as plt
 
 #useful functions
+def load_corpus():
+    '''
+    Aux function to load the cess_esp corpus
+    '''
+    corpus_sentences=list(cess_esp.tagged_sents())
+
+    norm_corpus = []
+    for sentence in corpus_sentences:
+        norm_sentence = []
+        for w,cat in sentence:
+            if w != '*0*':
+                if str(cat).startswith('v'):
+                    cat = cat[0:3] if len(cat) >=3 else cat
+                elif str(cat).startswith('F'):
+                    cat = cat[0:3] if len(cat) >=3 else cat
+                else:
+                    cat = cat[0:2] if len(cat) >=3 else cat
+                norm_sentence.append((w,cat))
+        norm_corpus.append(norm_sentence)
+    return norm_corpus
+
 def cosinus_distance(e1, e2):
     '''
     function to compute the cosinusdistance between two word embeddings
@@ -69,11 +91,17 @@ def brill_tagger(train, test, baselineModel, templates):
     return local_bill_tagger.evaluate(test)
 
 def crf_tagger(train, test):
+    '''
+    function to train and test a crf tagger. It stores the generated model in a file.
+    '''
     local_crf_tagger = crf.CRFTagger()
     local_crf_tagger.train(train, 'model.crf.tagger')
     return local_crf_tagger.accuracy(test)
 
 def perceptron_tagger(train, test):
+    '''
+    function to train and test a perceptron tagger
+    '''
     local_perceptron_tagger = perceptron.PerceptronTagger()
     local_perceptron_tagger.train(train)
     return local_perceptron_tagger.accuracy(test)
@@ -158,6 +186,9 @@ def get_partitions(corpus, relation=0.9, shuffle=False):
     return train, test
 
 def get_num_of_words(fold, corpus):
+    '''
+    Gets the number of words in a test set of a given corpusfor the specified fold.
+    '''
     n = 0
     for sentence in corpus:
         for word in sentence:
