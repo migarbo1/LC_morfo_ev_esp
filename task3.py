@@ -27,7 +27,7 @@ def tnt_smoothing_test():
     acc_array = utils.fold_cross_validation(corpus, 10, True, 'TNT')
     n = utils.get_num_of_words(10, corpus)
     ic = [utils.interval_trust(acc,n) for acc in acc_array]
-    utils.plot_model(results=acc_array, ic=ic, fold=10, model="HMM")
+    utils.plot_model(results=acc_array, ic=ic, fold=10, model="TNT")
     print("No smoothing")
     for i in range(len(acc_array)):
         print(str(acc_array[i]) + " +- " + str(ic[i]))
