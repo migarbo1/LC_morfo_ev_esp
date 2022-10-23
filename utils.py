@@ -3,8 +3,7 @@ import numpy as np
 import math
 import random
 import nltk
-from nltk.tag import hmm
-from nltk.tag import tnt
+from nltk.tag import hmm, tnt, brill, brill_trainer, UnigramTagger, crf, perceptron
 import matplotlib.pyplot as plt
 
 #useful functions
@@ -48,6 +47,36 @@ def affix_tagger(train, test=None, affix_len = 3):
     else:
         affix_tagger_accuracy = local_affix_tagger.evaluate(test)
         return affix_tagger_accuracy
+
+def brill_tagger(train, test, baselineModel, templates):
+    '''
+    function to train and test a brill tagger. 
+    - for the baselineModels user can choose: 'UNI' or 'HMM'
+    - for the templates user can choose:
+        1: demo18 -- templates for the original nltk demo
+        2: demo18 plus -- original nltk demo + multi-feature
+        3: brill24 -- paper of 1995 
+    '''
+    selected_template = brill.nltkdemo18()
+    if templates == 2:
+        selected_template = brill.nltkdemo18plus()
+    if templates == 3:
+        selected_template = brill.brill24()
+
+    baseline = UnigramTagger(train) if baselineModel == 'UNI' else hmm.HiddenMarkovModelTagger.train(train)
+    
+    local_bill_tagger = brill_trainer.BrillTaggerTrainer(baseline, selected_template).train(train)
+    return local_bill_tagger.evaluate(test)
+
+def crf_tagger(train, test):
+    local_crf_tagger = crf.CRFTagger()
+    local_crf_tagger.train(train, 'model.crf.tagger')
+    return local_crf_tagger.accuracy(test)
+
+def perceptron_tagger(train, test):
+    local_perceptron_tagger = perceptron.PerceptronTagger()
+    local_perceptron_tagger.train(train)
+    return local_perceptron_tagger.accuracy(test)
 
 def fold_cross_validation(corpus, fold=10, shuffle=False, model = 'Both', smoothing=0):
     '''
@@ -113,7 +142,7 @@ def incremental_test(corpus, fold=10, shuffle=False, model = 'Both'):
 
     return np.array(results)
 
-def get_partitions(corpus, relation=0.9, shuffl=False):
+def get_partitions(corpus, relation=0.9, shuffle=False):
     '''
     Function that returns train and test partitions based on the relation of their sizes
     returns train, test
@@ -122,7 +151,7 @@ def get_partitions(corpus, relation=0.9, shuffl=False):
 
     if shuffle:
         random.shuffle(local_corpus)
-    len_train = math.floor(len(local_corpus)*0.9)
+    len_train = math.floor(len(local_corpus)*relation)
     train = local_corpus[:len_train]
     test = local_corpus[len_train:]
 
@@ -135,13 +164,13 @@ def get_num_of_words(fold, corpus):
             n += 1
     return n//fold
 
-def plot_model(results, ic, model, fold):
+def plot_model(results, ic, model, fold, title='Ten-fold cross validation'):
     x=[i+1 for i in range(fold)]
     y=results
     #plt.axis([0, 11, 0.80, 0.97])
     plt.ylabel('Accuracy')
     plt.xlabel('Fold')
-    plt.title('Ten-fold cross validation ' + model)
+    plt.title('{} {}'.format(title, model))
     plt.plot(x,y,'ro')
     plt.errorbar(x,y,yerr=ic,linestyle='None')
     plt.margins(y=0.1)
