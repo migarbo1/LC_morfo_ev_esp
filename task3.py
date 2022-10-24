@@ -11,7 +11,7 @@ def tnt_smoothing_test():
         print(str(acc_array[i]) + " +- " + str(ic[i]))
 
     for suffix_size in range(1, 5):
-        acc_array = utils.fold_cross_validation(corpus, 10, True, 'TNT', suffix_size)
+        acc_array = utils.fold_cross_validation(corpus, 10, True, 'TNT', -1*suffix_size)
         ic = [utils.interval_trust(acc,n) for acc in acc_array]
         utils.plot_model(results=acc_array, ic=ic, fold=10, model='TNT')
         print("Affix length : " + str(suffix_size))
