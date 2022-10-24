@@ -8,11 +8,13 @@ from nltk.tag import hmm, tnt, brill, brill_trainer, UnigramTagger, crf, percept
 import matplotlib.pyplot as plt
 
 #useful functions
-def load_corpus():
+def load_corpus(reduce_tags=True):
     '''
     Aux function to load the cess_esp corpus
     '''
     corpus_sentences=list(cess_esp.tagged_sents())
+    if not reduce_tags:
+        return corpus_sentences
 
     norm_corpus = []
     for sentence in corpus_sentences:
@@ -28,6 +30,14 @@ def load_corpus():
                 norm_sentence.append((w,cat))
         norm_corpus.append(norm_sentence)
     return norm_corpus
+
+def get_categories_number(corpus):
+    tags = []
+    for sentence in corpus:
+        for _,cat in sentence:
+            tags += [cat]
+    return len(list(set(tags)))
+
 
 def cosinus_distance(e1, e2):
     '''
@@ -53,7 +63,7 @@ def tnt_tagger(train, test, smoothing):
     '''
     function to train and test a TNT model
     '''
-    if smoothing > 0 :
+    if smoothing != 0 :
         local_affix_tagger = affix_tagger(train, affix_len=smoothing)
         local_tnt_tagger = tnt.TnT(unk=local_affix_tagger, Trained=True)
     else:
@@ -154,8 +164,8 @@ def incremental_test(corpus, fold=10, shuffle=False, model = 'Both'):
     
     test = local_corpus[9*len_subsets:]
 
-    for i in range(fold):
-        train = local_corpus[:(i+1)*len_subsets]
+    for i in range(1,fold):
+        train = local_corpus[:(i)*len_subsets]
         
         if model == 'HMM':
             prec_hmm = hmm_tagger(train, test)
